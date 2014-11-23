@@ -1,23 +1,82 @@
 '''
     Main application of the package. It displays a set of physics fields,
-    each one containing a bunch of examples of that field.
+    each one containing a bunch of examples.
+    
+    @Author: Gonzalo M.
+    @Date: 23/11/2014
 '''
 
 import Tkinter
 
 class Application( Tkinter.Tk ):
     '''
-        To be implemented???: a class for using the window also as a container.
+        Redefine Tkinter's Tk class in order to use contain every object associated to it.
     '''
     def __init__( self, name, **kargs ):
         Tkinter.Tk.__init__( self, screenName = name )
         self.elements = {}
         for k in kargs:
             exec( 'self.configure( {0} = {1} ) )'.format( k, kargs[k] ) )
+        
+        self.update()
 
-    def AddButton( name, **kargs ):
-        button = Tkinter.Button( self, **kargs )
-        self.elements[name] = button
+    def Add( self, kind, name, *args, **kargs ):
+        '''
+            Add a widget of specified kind.
+        '''
+        if args:
+            exec( "self.elements['{1}'] = Tkinter.{0}( self, *args, **kargs )".format(kind,name))
+        else:
+            exec( "self.elements['{1}'] = Tkinter.{0}( self, **kargs )".format(kind,name))
+
+    def Get( self, name ):
+        '''
+            Return element identified named name.
+        '''
+        return self.elements.get( name )
+    
+    def GetValue( self, name ):
+        '''
+            Return current value of some element named name. It must be a variable (and have a get method).
+        '''
+        return self.Get( name ).get()
+
+    def Pack( self, name, **packing_opt ):
+        '''
+            Pack widget named @name.
+        '''
+        self.elements[name].pack( **packing_opt )
+    
+    def Size( self ):
+        '''
+            Get size of the application.
+        '''
+        return tuple(int(npx) for npx in self.geometry().split('+')[0].split('x'))
+
+    def Resize( self, width, height ):
+        '''
+            Change dimensions.
+        '''
+        self.geometry( '{0}x{1}'.format( width, height ) )
+        self.update()
+
+    def Repos( self, xpos, ypos ):
+        '''
+            Change position on screen.
+        '''
+        self.geometry( '+{0}+{1}'.format( xpos, ypos ) )
+        self.update()
+
+    def Center( self ):
+        '''
+            Center application on screen.
+        '''
+        w = self.winfo_screenwidth()
+        h = self.winfo_screenheight()
+        xsize, ysize = self.Size()
+        x = w/2 - xsize/2
+        y = h/2 - ysize/2
+        self.Repos( x, y )
 
 def Calling(arg):
     '''
@@ -30,77 +89,64 @@ def CheckSelection():
         Check the selected option and behave accordingly to it.
     '''
     
-    if ProgramSelectorG.get() != GravityExamples[0]:
-        Calling( ProgramSelectorG.get() )
+    if MainWindow.GetValue('gravity_var') != Gravity_labels[0]:
+        Calling( MainWindow.GetValue('gravity_var') )
 
-    elif ProgramSelectorEM.get() != ElectromagnetismExamples[0]:
-        Calling( ProgramSelectorEM.get() )
+    elif MainWindow.GetValue('electro_var') != Electromagnetism_labels[0]:
+        Calling( MainWindow.GetValue('electro_var') )
 
-    elif ProgramSelectorTD.get() != ThermodynamicsExamples[0]:
-        Calling( ProgramSelectorTD.get() )
+    elif MainWindow.GetValue('thermo_var') != Thermodynamics_labels[0]:
+        Calling( MainWindow.GetValue('thermo_var') )
 
-    elif ProgramSelectorOP.get() != OpticsExamples[0]:
-        Calling( ProgramSelectorOP.get() )
+    elif MainWindow.GetValue('optics_var') != Optics_labels[0]:
+        Calling( MainWindow.GetValue('optics_var') )
 
-    elif ProgramSelectorQM.get() != QuantumMechanicsExamples[0]:
-        Calling( ProgramSelectorQM.get() )
+    elif MainWindow.GetValue('quantum_var') != QuantumMechanics_labels[0]:
+        Calling( MainWindow.GetValue('quantum_var') )
 
 
 # Create a new window
-MainWindow = Tkinter.Tk( screenName = 'VisualPhysics' )
-MainWindow.configure( bg = 'black' )
+MainWindow = Application( 'VisualPhysics' )
+MainWindow.Resize( 600, 300 )
+MainWindow.Center()
 
 # Load and insert logo
-photofile = Tkinter.PhotoImage( file = "pylogo.gif"  )
-photo = Tkinter.Label( MainWindow, image = photofile )
-photo.config( height = 175, width = 175 )
-photo.pack( side = Tkinter.RIGHT )
+photofile = Tkinter.PhotoImage( file = 'pylogo.gif'  )
+MainWindow.Add( 'Label', 'logo', image = photofile, height = 300, width = 300 )
+MainWindow.Pack( 'logo', side = Tkinter.RIGHT )
+
+# Now we want to create a number of sections for our physics examples.
 
 # Label for each field
-GravityExamples          = ['Gravity']
-ElectromagnetismExamples = ['Electromagnetism']
-ThermodynamicsExamples   = ['Thermodynamics']
-OpticsExamples           = ['Optics']
-QuantumMechanicsExamples = ['Quantum mechanics']
+Gravity_labels          = ['Gravity']
+Electromagnetism_labels = ['Electromagnetism']
+Thermodynamics_labels   = ['Thermodynamics']
+Optics_labels           = ['Optics']
+QuantumMechanics_labels = ['Quantum mechanics']
 
-# Examples for each field
-GravityExamples += ['Solar system','Moon']
-ElectromagnetismExamples += ['Dipole']
+# We can add a few examples for each field
+Gravity_labels          += ['Solar system','Moon']
+Electromagnetism_labels += ['Dipole']
 
-# Variables
-ProgramSelectorG  = Tkinter.StringVar( MainWindow ); ProgramSelectorG .set(GravityExamples[0])
-ProgramSelectorEM = Tkinter.StringVar( MainWindow ); ProgramSelectorEM.set(ElectromagnetismExamples[0])
-ProgramSelectorTD = Tkinter.StringVar( MainWindow ); ProgramSelectorTD.set(ThermodynamicsExamples[0])
-ProgramSelectorOP = Tkinter.StringVar( MainWindow ); ProgramSelectorOP.set(OpticsExamples[0])
-ProgramSelectorQM = Tkinter.StringVar( MainWindow ); ProgramSelectorQM.set(QuantumMechanicsExamples[0])
+# Create variables
+MainWindow.Add( 'StringVar', 'gravity_var', Gravity_labels[0]          )
+MainWindow.Add( 'StringVar', 'electro_var', Electromagnetism_labels[0] )
+MainWindow.Add( 'StringVar', 'thermo_var' , Thermodynamics_labels[0]   )
+MainWindow.Add( 'StringVar', 'optics_var' , Optics_labels[0]           )
+MainWindow.Add( 'StringVar', 'quantum_var', QuantumMechanics_labels[0] )
 
-# Option menus
-Gravity          = Tkinter.OptionMenu( MainWindow, ProgramSelectorG , *GravityExamples          )
-Electromagnetism = Tkinter.OptionMenu( MainWindow, ProgramSelectorEM, *ElectromagnetismExamples )
-Thermodynamics   = Tkinter.OptionMenu( MainWindow, ProgramSelectorTD, *ThermodynamicsExamples   )
-Optics           = Tkinter.OptionMenu( MainWindow, ProgramSelectorOP, *OpticsExamples           )
-QuantumMechanics = Tkinter.OptionMenu( MainWindow, ProgramSelectorQM, *QuantumMechanicsExamples )
+# Add option menus to Main window
+MainWindow.Add( 'OptionMenu', 'Gravity', MainWindow.Get('gravity_var'), *Gravity_labels          )
+MainWindow.Add( 'OptionMenu', 'Electro', MainWindow.Get('electro_var'), *Electromagnetism_labels )
+MainWindow.Add( 'OptionMenu', 'Thermo' , MainWindow.Get('thermo_var' ), *Thermodynamics_labels   )
+MainWindow.Add( 'OptionMenu', 'Optics' , MainWindow.Get('optics_var' ), *Optics_labels           )
+MainWindow.Add( 'OptionMenu', 'Quantum', MainWindow.Get('quantum_var'), *QuantumMechanics_labels )
 
-# A button to run the selected option
-GoButton = Tkinter.Button( MainWindow, bg = 'red', text = 'GO!', command = CheckSelection )
-
-
-# Sizes configuration
-wdt = 20
-GoButton.config( width = wdt - 2 )
-Gravity.config( width = wdt )
-Electromagnetism.config( width = wdt )
-Thermodynamics.config( width = wdt )
-Optics.config( width = wdt )
-QuantumMechanics.config( width = wdt )
+# Add a button to run the selected option
+MainWindow.Add( 'Button', 'GO', text = 'GO!', command = CheckSelection )
 
 # Packing
-GoButton.pack()
-Gravity.pack()
-Electromagnetism.pack()
-Thermodynamics.pack()
-Optics.pack()
-QuantumMechanics.pack()
+[ MainWindow.Pack( name, fill = Tkinter.X ) for name in [ 'GO', 'Gravity', 'Electro', 'Thermo', 'Optics', 'Quantum' ] ]
 
 # Mainloop
 MainWindow.mainloop()
