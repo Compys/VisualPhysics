@@ -33,41 +33,44 @@ class AppManager:
 
 if __name__ == '__main__':
     import random
-    app = AppManager('trial')
+    from math import log
+    app = AppManager('trial',autoscale = False, range = 3)
     R   = random.Random()
     Npart = 20
-    dt    = 3e-6
+    dt    = 1e-6
     app.Add( 'box', 'box',
              pos = (0.,0.,0.),
              length = 2, height = 2, width = 2,
              color = visual.color.orange, opacity = 0.2 )
-
+    v = 100
     for n in range( Npart ):
         app.Add( 'sphere', 'sphere' + str(n),
                  pos = visual.vector( [R.uniform(-1,1) for i in range(3)] ),
-                 p   = visual.vector( [R.uniform(-1,1) for i in range(3)] ),
+                 p   = visual.vector( [ R.gauss(v,v**.5) * R.choice([-1,1]) for i in range(3)] ),
                  radius = 0.05)
-
-    def LJ( p1, p2 ):
-        dir = ( p1.pos - p2.pos ).norm()
-        r2 = 1. / ( p1.pos - p2.pos ).mag2
-        return (r2**6 - r2**3) * dir
-
-    def V( i ):
-        pot  = visual.vector(0.,0.,0.)
-        part = app.Get( 'sphere' + str(i) )
+    
+    def Force( i ):
+        Fi  = visual.vector(0.,0.,0.)
+        parti = app.Get( 'sphere' + str(i) )
         for j in range(Npart):
-            pot += LJ( part, app.Get( 'sphere' + str(j) ) ) if i != j else visual.vector(0.,0.,0.)
-
-        return pot
+            if i == j: continue
+            partj = app.Get( 'sphere' + str(j) )
+            dr2 = 1.0 / ( parti.pos - partj.pos ).mag2**4
+            Fi += ( 2.*dr2**2 - dr2 ) * ( parti.pos - partj.pos )
+        Fi *= 24
+        return Fi
 
     while True:
         visual.rate(200)
+        F = range(Npart)
         for i in range(Npart):
             sph = app.Get( 'sphere' + str(i) )
 
-            F = V(i)
-            sph.p += F * dt
+            F[i] = Force(i)
+        
+        for i in range(Npart):
+            sph = app.Get( 'sphere' + str(i) )
+            sph.p += F[i] * dt
             sph.pos += sph.p * dt
 
             if abs(sph.x) > 0.95:
@@ -76,5 +79,8 @@ if __name__ == '__main__':
                 sph.p.y *= -1
             if abs(sph.z) > 0.95:
                 sph.p.z *= -1
+            if sph.p.mag > 1e13:
+                sph.p *= sph.p.mag**.5
+
 
 
