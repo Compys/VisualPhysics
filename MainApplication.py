@@ -1,7 +1,7 @@
 '''
     Main application of the package. It displays a set of physics fields,
     each one containing a bunch of examples.
-    
+
     @Author: Gonzalo M.
     @Date: 23/11/2014
 '''
@@ -17,7 +17,7 @@ class Application( Tkinter.Tk ):
         self.elements = {}
         for k in kargs:
             exec( 'self.configure( {0} = {1} ) )'.format( k, kargs[k] ) )
-        
+
         self.update()
 
     def Add( self, kind, name, *args, **kargs ):
@@ -34,7 +34,7 @@ class Application( Tkinter.Tk ):
             Return element identified named name.
         '''
         return self.elements.get( name )
-    
+
     def GetValue( self, name ):
         '''
             Return current value of some element named name. It must be a variable (and have a get method).
@@ -46,7 +46,7 @@ class Application( Tkinter.Tk ):
             Pack widget named @name.
         '''
         self.elements[name].pack( **packing_opt )
-    
+
     def Size( self ):
         '''
             Get size of the application.
@@ -88,7 +88,7 @@ def CheckSelection():
     '''
         Check the selected option and behave accordingly to it.
     '''
-    
+
     if MainWindow.GetValue('gravity_var') != Gravity_labels[0]:
         Calling( MainWindow.GetValue('gravity_var') )
 
@@ -104,52 +104,49 @@ def CheckSelection():
     elif MainWindow.GetValue('quantum_var') != QuantumMechanics_labels[0]:
         Calling( MainWindow.GetValue('quantum_var') )
 
+if __name__ == '__main__':
+    # Create a new window
+    MainWindow = Application( 'VisualPhysics' )
+    MainWindow.Resize( 600, 300 )
+    MainWindow.Center()
 
-# Create a new window
-MainWindow = Application( 'VisualPhysics' )
-MainWindow.Resize( 600, 300 )
-MainWindow.Center()
+    # Load and insert logo
+    photofile = Tkinter.PhotoImage( file = 'pylogo.gif'  )
+    MainWindow.Add( 'Label', 'logo', image = photofile, height = 300, width = 300 )
+    MainWindow.Pack( 'logo', side = Tkinter.RIGHT )
 
-# Load and insert logo
-photofile = Tkinter.PhotoImage( file = 'pylogo.gif'  )
-MainWindow.Add( 'Label', 'logo', image = photofile, height = 300, width = 300 )
-MainWindow.Pack( 'logo', side = Tkinter.RIGHT )
+    # Now we want to create a number of sections for our physics examples.
 
-# Now we want to create a number of sections for our physics examples.
+    # Label for each field
+    Gravity_labels          = ['Gravity']
+    Electromagnetism_labels = ['Electromagnetism']
+    Thermodynamics_labels   = ['Thermodynamics']
+    Optics_labels           = ['Optics']
+    QuantumMechanics_labels = ['Quantum mechanics']
 
-# Label for each field
-Gravity_labels          = ['Gravity']
-Electromagnetism_labels = ['Electromagnetism']
-Thermodynamics_labels   = ['Thermodynamics']
-Optics_labels           = ['Optics']
-QuantumMechanics_labels = ['Quantum mechanics']
+    # We can add a few examples for each field
+    Gravity_labels          += ['Solar system','Moon']
+    Electromagnetism_labels += ['Dipole']
 
-# We can add a few examples for each field
-Gravity_labels          += ['Solar system','Moon']
-Electromagnetism_labels += ['Dipole']
+    # Create variables
+    MainWindow.Add( 'StringVar', 'gravity_var', Gravity_labels[0]          )
+    MainWindow.Add( 'StringVar', 'electro_var', Electromagnetism_labels[0] )
+    MainWindow.Add( 'StringVar', 'thermo_var' , Thermodynamics_labels[0]   )
+    MainWindow.Add( 'StringVar', 'optics_var' , Optics_labels[0]           )
+    MainWindow.Add( 'StringVar', 'quantum_var', QuantumMechanics_labels[0] )
 
-# Create variables
-MainWindow.Add( 'StringVar', 'gravity_var', Gravity_labels[0]          )
-MainWindow.Add( 'StringVar', 'electro_var', Electromagnetism_labels[0] )
-MainWindow.Add( 'StringVar', 'thermo_var' , Thermodynamics_labels[0]   )
-MainWindow.Add( 'StringVar', 'optics_var' , Optics_labels[0]           )
-MainWindow.Add( 'StringVar', 'quantum_var', QuantumMechanics_labels[0] )
+    # Add option menus to Main window
+    MainWindow.Add( 'OptionMenu', 'Gravity', MainWindow.Get('gravity_var'), *Gravity_labels          )
+    MainWindow.Add( 'OptionMenu', 'Electro', MainWindow.Get('electro_var'), *Electromagnetism_labels )
+    MainWindow.Add( 'OptionMenu', 'Thermo' , MainWindow.Get('thermo_var' ), *Thermodynamics_labels   )
+    MainWindow.Add( 'OptionMenu', 'Optics' , MainWindow.Get('optics_var' ), *Optics_labels           )
+    MainWindow.Add( 'OptionMenu', 'Quantum', MainWindow.Get('quantum_var'), *QuantumMechanics_labels )
 
-# Add option menus to Main window
-MainWindow.Add( 'OptionMenu', 'Gravity', MainWindow.Get('gravity_var'), *Gravity_labels          )
-MainWindow.Add( 'OptionMenu', 'Electro', MainWindow.Get('electro_var'), *Electromagnetism_labels )
-MainWindow.Add( 'OptionMenu', 'Thermo' , MainWindow.Get('thermo_var' ), *Thermodynamics_labels   )
-MainWindow.Add( 'OptionMenu', 'Optics' , MainWindow.Get('optics_var' ), *Optics_labels           )
-MainWindow.Add( 'OptionMenu', 'Quantum', MainWindow.Get('quantum_var'), *QuantumMechanics_labels )
+    # Add a button to run the selected option
+    MainWindow.Add( 'Button', 'GO', text = 'GO!', command = CheckSelection )
 
-# Add a button to run the selected option
-MainWindow.Add( 'Button', 'GO', text = 'GO!', command = CheckSelection )
+    # Packing
+    [ MainWindow.Pack( name, fill = Tkinter.X ) for name in [ 'GO', 'Gravity', 'Electro', 'Thermo', 'Optics', 'Quantum' ] ]
 
-# Packing
-[ MainWindow.Pack( name, fill = Tkinter.X ) for name in [ 'GO', 'Gravity', 'Electro', 'Thermo', 'Optics', 'Quantum' ] ]
-
-# Mainloop
-MainWindow.mainloop()
-
-
-
+    # Mainloop
+    MainWindow.mainloop()
